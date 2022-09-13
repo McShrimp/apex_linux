@@ -28,6 +28,12 @@ typedef void *PVOID;
 // these are required because we are working with PE images
 //
 
+
+float AIMSMOOTHold{};
+float AIMFOVold{};
+
+
+
 typedef struct
 {
 	float x, y, z;
@@ -553,13 +559,25 @@ int main(void)
 	printf("[+] m_iBoneMatrix: %x\n", m_iBoneMatrix);
 	printf("[+] m_playerData: %x\n", m_playerData);
 
+	printf (R "EOF(
+ _______ _______         _______ _______         
+(  ____ (  ___  |\     /(  ____ (  ____ |\     /|
+| (    \| (   ) ( \   / | (    )| (    \( \   / )
+| |     | (___) |\ (_) /| (____)| (__    \ (_) / 
+| | ____|  ___  | \   / |  _____|  __)    ) _ (  
+| | \_  | (   ) |  ) (  | (     | (      / ( ) \ 
+| (___) | )   ( |  | |  | )     | (____/( /   \ )
+(_______|/     \|  \_/  |/      (_______|/     \|");         
 	while (1)
 	{
 		if (!rx_process_exists(r5apex))
 		{
 			break;
 		}
-
+		     
+		if (
+		printf("Current Aimsmooth: ", AIMSMOOTH, "Current Fov: ", AIMFOV);		
+		
 		QWORD localplayer = rx_read_i64(r5apex, dwLocalPlayer);
 
 		if (localplayer == 0)
