@@ -10,7 +10,7 @@
 #include <iostream>
 #include <stdlib.h>
 
-// keys: 107 = mouse1, 108 = mouse2, 109 = mouse3, 110 = mouse4, 111 = mouse5
+// keys: 107 = mouse1, 108 = mouse2, 109 = mouse3, 110 = mouse4, 111 = mouse5 80 = LALT
 #define AIMKEY 80
 float AIMFOV = 10.0f;
 float AIMSMOOTH = 10.0f;
