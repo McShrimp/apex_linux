@@ -7,12 +7,18 @@
 #include <string.h>
 #include <malloc.h>
 #include <math.h>
+#include <iostream>
 
 // keys: 107 = mouse1, 108 = mouse2, 109 = mouse3, 110 = mouse4, 111 = mouse5
-#define AIMKEY 111
-#define AIMFOV 10.0f
-#define AIMSMOOTH 10.0f
-#define GLOW_ESP 1
+#define AIMKEY 111;
+float AIMFOV = 10.0f;
+float AIMSMOOTH = 10.0f;
+#define GLOW_ESP 1;
+#define UPKEY 111;
+#define DOWNKEY 111;
+#define SWITCHKEY 111;
+
+
 
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
@@ -559,25 +565,61 @@ int main(void)
 	printf("[+] m_iBoneMatrix: %x\n", m_iBoneMatrix);
 	printf("[+] m_playerData: %x\n", m_playerData);
 
-	printf (R "EOF(
- _______ _______         _______ _______         
+	printf (R"("
+  _______ _______         _______ _______         
 (  ____ (  ___  |\     /(  ____ (  ____ |\     /|
 | (    \| (   ) ( \   / | (    )| (    \( \   / )
 | |     | (___) |\ (_) /| (____)| (__    \ (_) / 
 | | ____|  ___  | \   / |  _____|  __)    ) _ (  
 | | \_  | (   ) |  ) (  | (     | (      / ( ) \ 
 | (___) | )   ( |  | |  | )     | (____/( /   \ )
-(_______|/     \|  \_/  |/      (_______|/     \|");         
+(_______|/     \|  \_/  |/      (_______|/     \|
+                                                 
+
+")");  
 	while (1)
 	{
 		if (!rx_process_exists(r5apex))
 		{
 			break;
 		}
-		     
-		if (
-		printf("Current Aimsmooth: ", AIMSMOOTH, "Current Fov: ", AIMFOV);		
+
+		if(IsButtonDown(r5apex, IInputSystem, 87))
+		AIMFOV += 2;
+		if(IsButtonDown(r5apex, IInputSystem, 89))
+		AIMFOV -= 2;
+		if(IsButtonDown(r5apex, IInputSystem, 88))
+		AIMSMOOTH -= 2;
+		if(IsButtonDown(r5apex, IInputSystem, 90))
+		AIMSMOOTH += 2;
+/*for (int i = 50; i <= 150; i++) {
+if(IsButtonDown(r5apex, IInputSystem, i))
+	printf("Key: %x", i);
+}*/
 		
+		
+		if (!(AIMSMOOTHold = AIMSMOOTH) || !(AIMFOVold = AIMFOV)){
+			system("cls");
+			printf (R"("
+  _______ _______         _______ _______         
+(  ____ (  ___  |\     /(  ____ (  ____ |\     /|
+| (    \| (   ) ( \   / | (    )| (    \( \   / )
+| |     | (___) |\ (_) /| (____)| (__    \ (_) / 
+| | ____|  ___  | \   / |  _____|  __)    ) _ (  
+| | \_  | (   ) |  ) (  | (     | (      / ( ) \ 
+| (___) | )   ( |  | |  | )     | (____/( /   \ )
+(_______|/     \|  \_/  |/      (_______|/     \|
+                                                 
+
+")");  
+		printf("Current Aimsmooth: ", AIMSMOOTH, "Current Fov: ", AIMFOV);
+		if (!(AIMSMOOTHold = AIMSMOOTH))	
+		AIMSMOOTHold = AIMSMOOTH;
+
+		if(!(AIMFOVold = AIMFOV))
+		AIMFOVold = AIMFOV;	
+	
+		}
 		QWORD localplayer = rx_read_i64(r5apex, dwLocalPlayer);
 
 		if (localplayer == 0)
