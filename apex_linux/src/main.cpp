@@ -8,16 +8,19 @@
 #include <malloc.h>
 #include <math.h>
 #include <iostream>
+#include <stdlib.h>
 
 // keys: 107 = mouse1, 108 = mouse2, 109 = mouse3, 110 = mouse4, 111 = mouse5
-#define AIMKEY 111;
+#define AIMKEY 111
 float AIMFOV = 10.0f;
 float AIMSMOOTH = 10.0f;
-#define GLOW_ESP 1;
-#define UPKEY 111;
-#define DOWNKEY 111;
-#define SWITCHKEY 111;
+bool visbypass = 0;
+#define GLOW_ESP 1
+#define UPKEY 111
+#define DOWNKEY 111
+#define SWITCHKEY 111
 
+#define clear() printf("\033[H\033[J")
 
 
 typedef unsigned char BYTE;
@@ -592,14 +595,16 @@ int main(void)
 		AIMSMOOTH -= 2;
 		if(IsButtonDown(r5apex, IInputSystem, 90))
 		AIMSMOOTH += 2;
+		if (IsButtonDown(r5apex, IInputSystem, 60))
+		visbypass = !visbypass;
 /*for (int i = 50; i <= 150; i++) {
 if(IsButtonDown(r5apex, IInputSystem, i))
 	printf("Key: %x", i);
 }*/
 		
 		
-		if (!(AIMSMOOTHold = AIMSMOOTH) || !(AIMFOVold = AIMFOV)){
-			system("cls");
+		if (!(AIMSMOOTHold == AIMSMOOTH) || !(AIMFOVold == AIMFOV)){
+			clear();
 			printf (R"("
   _______ _______         _______ _______         
 (  ____ (  ___  |\     /(  ____ (  ____ |\     /|
@@ -612,11 +617,11 @@ if(IsButtonDown(r5apex, IInputSystem, i))
                                                  
 
 ")");  
-		printf("Current Aimsmooth: ", AIMSMOOTH, "Current Fov: ", AIMFOV);
-		if (!(AIMSMOOTHold = AIMSMOOTH))	
+		printf("Current Aimsmooth: %f", AIMSMOOTH, "Current Fov: %f", AIMFOV);
+		if (!(AIMSMOOTHold == AIMSMOOTH))	
 		AIMSMOOTHold = AIMSMOOTH;
 
-		if(!(AIMFOVold = AIMFOV))
+		if(!(AIMFOVold == AIMFOV))
 		AIMFOVold = AIMFOV;	
 	
 		}
@@ -697,7 +702,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 
 			float last_visible = rx_read_float(r5apex, entity + dwVisibleTime);
 
-			if (last_visible != 0.00f)
+			if ((last_visible != 0.00f) || visbypass)
 			{
 
 				float fov = get_fov(breath_angles, target_angle);
