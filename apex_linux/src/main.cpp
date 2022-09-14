@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 // keys: 107 = mouse1, 108 = mouse2, 109 = mouse3, 110 = mouse4, 111 = mouse5
-#define AIMKEY 111
+#define AIMKEY 110
 float AIMFOV = 25.0f;
 float AIMSMOOTH = 11.0f;
 int visbypass = 0;
