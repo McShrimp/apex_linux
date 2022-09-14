@@ -12,9 +12,9 @@
 
 // keys: 107 = mouse1, 108 = mouse2, 109 = mouse3, 110 = mouse4, 111 = mouse5
 #define AIMKEY 111
-float AIMFOV = 12.0f;
-float AIMSMOOTH = 11.0f;
-int visbypass = 0;
+float AIMFOV = 12.0f; // change for FOV circle
+float AIMSMOOTH = 11.0f; // change for aim snapiness
+//int visbypass = 0;
 #define GLOW_ESP 1
 #define UPKEY 111
 #define DOWNKEY 111
@@ -43,6 +43,8 @@ float AIMFOVold{1};
 float last_visibleOld {1000};
 float nearDist{};
 int visbypassOld{};
+Color color{}
+
 
 
 typedef struct
@@ -54,6 +56,11 @@ typedef struct
 {
 	int8_t GeneralGlowMode, BorderGlowMode, BorderSize, TransparentLevel;
 }GlowMode;
+
+typedef struct
+{
+	float r, b, g;
+}Color;
 
 float vec_length_sqrt(vec3 p0)
 {
