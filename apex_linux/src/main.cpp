@@ -10,8 +10,8 @@
 #include <iostream>
 #include <stdlib.h>
 
-// keys: 107 = mouse1, 108 = mouse2, 109 = mouse3, 110 = mouse4, 111 = mouse5 80 = LALT
-#define AIMKEY 80
+// keys: 107 = mouse1, 108 = mouse2, 109 = mouse3, 110 = mouse4, 111 = mouse5
+#define AIMKEY 111
 float AIMFOV = 10.0f;
 float AIMSMOOTH = 10.0f;
 bool visbypass = 0;
@@ -38,8 +38,8 @@ typedef void *PVOID;
 //
 
 
-float AIMSMOOTHold{};
-float AIMFOVold{};
+float AIMSMOOTHold{1};
+float AIMFOVold{1};
 
 
 
@@ -587,14 +587,14 @@ int main(void)
 			break;
 		}
 
-		if(IsButtonDown(r5apex, IInputSystem, 87))
-		AIMFOV += 2;
-		if(IsButtonDown(r5apex, IInputSystem, 89))
-		AIMFOV -= 2;
-		if(IsButtonDown(r5apex, IInputSystem, 88))
-		AIMSMOOTH -= 2;
-		if(IsButtonDown(r5apex, IInputSystem, 90))
-		AIMSMOOTH += 2;
+		if(IsButtonDown(r5apex, IInputSystem, 87)&& AIMFOV < 360)
+		AIMFOV += 1;
+		if(IsButtonDown(r5apex, IInputSystem, 89)&& AIMFOV >= 4)
+		AIMFOV -= 1;
+		if(IsButtonDown(r5apex, IInputSystem, 88) && AIMSMOOTH>= 0)
+		AIMSMOOTH -= 1;
+		if(IsButtonDown(r5apex, IInputSystem, 90)&& AIMSMOOTH < 20)
+		AIMSMOOTH += 1;
 		if (IsButtonDown(r5apex, IInputSystem, 60))
 		visbypass = !visbypass;
 /*for (int i = 50; i <= 150; i++) {
@@ -603,9 +603,12 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 }*/
 		
 		
-		if (!(AIMSMOOTHold == AIMSMOOTH) || !(AIMFOVold == AIMFOV)){
+		if (AIMSMOOTHold != AIMSMOOTH || AIMFOVold != AIMFOV){
+		
 			clear();
-			printf (R"("
+			printf("Current Aimsmooth: %f", AIMSMOOTH);
+			printf("\tCurrent AimFOV: %f", AIMFOV);
+			printf (R"(
   _______ _______         _______ _______         
 (  ____ (  ___  |\     /(  ____ (  ____ |\     /|
 | (    \| (   ) ( \   / | (    )| (    \( \   / )
@@ -617,7 +620,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
                                                  
 
 ")");  
-		printf("Current Aimsmooth: %f", AIMSMOOTH, "Current Fov: %f", AIMFOV);
+		
 		if (!(AIMSMOOTHold == AIMSMOOTH))	
 		AIMSMOOTHold = AIMSMOOTH;
 
