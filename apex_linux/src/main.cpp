@@ -11,8 +11,8 @@
 #include <stdlib.h>
 
 // keys: 107 = mouse1, 108 = mouse2, 109 = mouse3, 110 = mouse4, 111 = mouse5
-#define AIMKEY 110
-float AIMFOV = 25.0f;
+#define AIMKEY 111
+float AIMFOV = 12.0f;
 float AIMSMOOTH = 11.0f;
 int visbypass = 0;
 #define GLOW_ESP 1
@@ -40,7 +40,7 @@ typedef void *PVOID;
 
 float AIMSMOOTHold{1};
 float AIMFOVold{1};
-float last_visibleOld {0};
+float last_visibleOld {1000};
 float nearDist{};
 int visbypassOld{};
 
@@ -49,6 +49,11 @@ typedef struct
 {
 	float x, y, z;
 } vec3;
+
+typedef struct
+{
+	int8_t GeneralGlowMode, BorderGlowMode, BorderSize, TransparentLevel;
+}GlowMode;
 
 float vec_length_sqrt(vec3 p0)
 {
@@ -89,6 +94,13 @@ float vec_distance(vec3 p0, vec3 p1)
 	return vec_length_sqrt(vec_sub(p0, p1));
 }
 
+ float calcDistance(vec3 p0, vec3 p1) {
+    float dx = p0.x - p1.x;
+    float dy = p0.y - p1.y;
+    float dz = p0.z - p1.z;
+    float distance = sqrtf(powf(dx, 2) + powf(dy, 2) + powf(dz, 2));
+    return distance;
+ }
 vec3 CalcAngle(vec3 src, vec3 dst)
 {
 	vec3 angle;
@@ -597,20 +609,17 @@ int main(void)
 		AIMSMOOTH -= 1;
 		if(IsButtonDown(r5apex, IInputSystem, 90)&& AIMSMOOTH < 20)
 		AIMSMOOTH += 1;*/
-		if (IsButtonDown(r5apex, IInputSystem, 80))
-		if (visbypass)
-		visbypass = 0;
-		else 
-		visbypass = 1;
+		//if (IsButtonDown(r5apex, IInputSystem, 80))
+		
 /*for (int i = 50; i <= 150; i++) {
 if(IsButtonDown(r5apex, IInputSystem, i))
 	printf("Key: %x", i);
 }*/
 		
 		
-		if (AIMSMOOTHold != AIMSMOOTH || AIMFOVold != AIMFOV || visbypass != visbypassOld ){
 		
-			clear();
+		
+			/*clear();
 			printf("Current Aimsmooth: %f", AIMSMOOTH);
 			printf("\tCurrent AimFOV: %f", AIMFOV);
 			printf("\tVis Bypass: %i", (int)visbypass);
@@ -627,17 +636,9 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 (_______|/     \|  \_/  |/      (_______|/     \|
                                                  
 
-")");  
+")");  */
 		
-		if (!(AIMSMOOTHold == AIMSMOOTH))	
-		AIMSMOOTHold = AIMSMOOTH;
-
-		if(!(AIMFOVold == AIMFOV))
-		AIMFOVold = AIMFOV;	
-		if(!(visbypassOld == visbypass))
-		visbypassOld = visbypass;	
-	
-		}
+		
 		QWORD localplayer = rx_read_i64(r5apex, dwLocalPlayer);
 
 		if (localplayer == 0)
@@ -692,17 +693,24 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				continue;
 			}
 
+			if (rx_read_i32(r5apex, entity + 0x2688) != 0) //bleedoutstate
+			{
+				lastvis_aim[i] = 0;
+				continue;
+			}
 			vec3 head = GetBonePosition(r5apex, entity, 2);
 
 			vec3 velocity;
 			rx_read_process(r5apex, entity + m_vecAbsOrigin - 0xC, &velocity, sizeof(vec3));
-
-			nearDist = vec_distance(local_position, velocity) ;
+			
+			
+			//nearDist = vec_distance(local_position, enmPos);
 
 			float fl_time = vec_distance(head, muzzle) / bulletSpeed;
 			
 			head.z += (700.0f * bulletGravity * 0.5f) * (fl_time * fl_time);
 
+			//if (neardist)
 			velocity.x = velocity.x * fl_time;
 			velocity.y = velocity.y * fl_time;
 			velocity.z = velocity.z * fl_time;
@@ -718,17 +726,15 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 
 			float last_visible = rx_read_float(r5apex, entity + dwVisibleTime);
 
-			const auto is_vis = last_visible > last_visibleOld || last_visible < 0.f && last_visibleOld > 0.f;
- 
-  			last_visibleOld = last_visible;
 
-			if (is_vis || visbypass)
+			if (last_visible != 0.00f)
 			{
-
+				
 				float fov = get_fov(breath_angles, target_angle);
 
-				if (fov < target_fov && last_visible > lastvis_aim[i] || visbypass)
+				if (fov < target_fov && last_visible > lastvis_aim[i])
 				{
+					//printf("Distance, %f", nearDist/100);
 
 					target_fov = fov;
 					target_entity = entity;
@@ -737,10 +743,17 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 			}
 
 #if GLOW_ESP == 1
-			rx_write_i32(r5apex, entity + 0x262, 16256);
-			rx_write_i32(r5apex, entity + 0x2dc, 1193322764);
-			rx_write_i32(r5apex, entity + 0x3c8, 7);
+			//rx_write_i32(r5apex, entity + 0x262, 16256);
+			//rx_write_i32(r5apex, entity + 0x2d0, 1193322764);
+
+			rx_write_i32(r5apex, entity + 0x3c8, 5);
 			rx_write_i32(r5apex, entity + 0x3d0, 2);
+			//GlowMode glow{101,101,46,90};
+			//rx_write_process(r5apex, entity + 0x2c4, &glow, sizeof(glow)) == sizeof(glow);
+			//write<GlowMode>(Entity + 0x2C4, { 101,101,46,90 }); 
+			rx_write_i32(r5apex, entity + 0x1D0, 2);
+			rx_write_i32(r5apex, entity + 0x1D4, 200);
+			rx_write_i32(r5apex, entity + 0x1D8, 2);
 #endif
 		}
 
@@ -749,6 +762,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 
 			if (rx_read_i32(r5apex, target_entity + m_iHealth) == 0)
 				continue;
+			
 
 			vec3 target_angle = {0, 0, 0};
 			float fov = 360.0f;
@@ -763,19 +777,28 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 
 				vec3 velocity;
 				rx_read_process(r5apex, target_entity + m_vecAbsOrigin - 0xC, &velocity, sizeof(vec3));
+				
+				vec3 enmPos;
+				rx_read_process(r5apex, target_entity + 0x158, &enmPos, sizeof(vec3));
 
+				if (calcDistance(local_position, enmPos) > 400){
 				float fl_time = vec_distance(head, muzzle) / bulletSpeed;
-
+				
 				head.z += (700.0f * bulletGravity * 0.5f) * (fl_time * fl_time);
 
+				
 				velocity.x = velocity.x * fl_time;
 				velocity.y = velocity.y * fl_time;
 				velocity.z = velocity.z * fl_time;
 
+				
+				
 				head.x += velocity.x;
 				head.y += velocity.y;
 				head.z += velocity.z;
-
+				}
+				
+				//printf("distance %f", calcDistance(local_position, enmPos));
 				vec3 angle = CalcAngle(muzzle, head);
 				float temp_fov = get_fov(breath_angles, angle);
 				if (temp_fov < fov)
@@ -844,6 +867,8 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 					continue;
 
 				DWORD current_tick = rx_read_i32(r5apex, IInputSystem + 0xcd8);
+
+				
 				if (current_tick - previous_tick > aim_ticks)
 				{
 					previous_tick = current_tick;
