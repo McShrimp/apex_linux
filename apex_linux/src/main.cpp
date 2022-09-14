@@ -68,6 +68,9 @@ int main(void)
 			dwLocalPlayer = ResolveRelativeAddressEx(r5apex, dwLocalPlayer, 3, 7);
 		}
 	}
+	
+	std::string dwLevelName = ResolveRelativeAddressEx(r5apex, 0x13a17b8, 3, 7);
+
 
 	QWORD IInputSystem = 0;
 	{
@@ -205,6 +208,11 @@ int main(void)
 	if (dwLocalPlayer == 0)
 	{
 		printf("[-] dwLocalPlayer not found\n");
+		goto ON_EXIT;
+	}
+	if (dwLevelName == 0)
+	{
+		printf("[-] dwLevelName not found\n");
 		goto ON_EXIT;
 	}
 
@@ -428,9 +436,11 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 #if GLOW_ESP == 1
 			//rx_write_i32(r5apex, entity + 0x262, 16256);
 			//rx_write_i32(r5apex, entity + 0x2d0, 1193322764);
-
-			rx_write_i32(r5apex, entity + 0x3c8, 5);
+			
+			rx_write_i32(r5apex, entity + 0x3c8, 5); 
 			rx_write_i32(r5apex, entity + 0x3d0, 2);
+			rx_write_i32(r5apex, entity + 0x320, 5); // glow thru walls test
+
 			//GlowMode glow{101,101,46,90};
 			//rx_write_process(r5apex, entity + 0x2c4, &glow, sizeof(glow)) == sizeof(glow);
 			//write<GlowMode>(Entity + 0x2C4, { 101,101,46,90 }); 
