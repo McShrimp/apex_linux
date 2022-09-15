@@ -43,7 +43,7 @@ float AIMFOVold{1};
 float last_visibleOld {1000};
 float nearDist{};
 int visbypassOld{};
-Color color{}
+//Color color{}
 
 
 
