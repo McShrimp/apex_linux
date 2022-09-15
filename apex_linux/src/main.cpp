@@ -434,19 +434,19 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 			}
 
 #if GLOW_ESP == 1
-			//rx_write_i32(r5apex, entity + 0x262, 16256);
-			//rx_write_i32(r5apex, entity + 0x2d0, 1193322764);
+			rx_write_i32(r5apex, entity + 0x262, 16256);
+			rx_write_i32(r5apex, entity + 0x2d0, 1193322764);
 			
-			rx_write_i32(r5apex, entity + 0x3c8, 5); 
+			rx_write_i32(r5apex, entity + 0x3c8, 7); 
 			rx_write_i32(r5apex, entity + 0x3d0, 2);
-			rx_write_i32(r5apex, entity + 0x320, 5); // glow thru walls test
+			//rx_write_i32(r5apex, entity + 0x320, 5); // glow thru walls test
 
 			//GlowMode glow{101,101,46,90};
 			//rx_write_process(r5apex, entity + 0x2c4, &glow, sizeof(glow)) == sizeof(glow);
 			//write<GlowMode>(Entity + 0x2C4, { 101,101,46,90 }); 
-			rx_write_i32(r5apex, entity + 0x1D0, 2);
-			rx_write_i32(r5apex, entity + 0x1D4, 200);
-			rx_write_i32(r5apex, entity + 0x1D8, 2);
+			//rx_write_i32(r5apex, entity + 0x1D0, 2);
+			//rx_write_i32(r5apex, entity + 0x1D4, 200);
+			//rx_write_i32(r5apex, entity + 0x1D8, 2);
 #endif
 		}
 
