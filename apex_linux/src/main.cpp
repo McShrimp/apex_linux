@@ -69,7 +69,7 @@ int main(void)
 		}
 	}
 	
-	std::string dwLevelName = ResolveRelativeAddressEx(r5apex, 0x13a17b8, 3, 7);
+	//std::string dwLevelName = ResolveRelativeAddressEx(r5apex, 0x13a17b8, 3, 7);
 
 
 	QWORD IInputSystem = 0;
@@ -210,11 +210,11 @@ int main(void)
 		printf("[-] dwLocalPlayer not found\n");
 		goto ON_EXIT;
 	}
-	if (dwLevelName == 0)
-	{
-		printf("[-] dwLevelName not found\n");
-		goto ON_EXIT;
-	}
+	//if (dwLevelName == 0)
+	//{
+	//	printf("[-] dwLevelName not found\n");
+	//	goto ON_EXIT;
+	//}
 
 	if (IInputSystem == 0)
 	{
