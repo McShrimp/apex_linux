@@ -474,7 +474,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				vec3 enmPos;
 				rx_read_process(r5apex, target_entity + 0x158, &enmPos, sizeof(vec3));
 
-				if (calcDistance(local_position, enmPos) > 400){
+				//if (calcDistance(local_position, enmPos) > 400){
 				float fl_time = vec_distance(head, muzzle) / bulletSpeed;
 				
 				head.z += (700.0f * bulletGravity * 0.5f) * (fl_time * fl_time);
@@ -489,7 +489,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				head.x += velocity.x;
 				head.y += velocity.y;
 				head.z += velocity.z;
-				}
+				//}
 				
 				//printf("distance %f", calcDistance(local_position, enmPos));
 				vec3 angle = CalcAngle(muzzle, head);
