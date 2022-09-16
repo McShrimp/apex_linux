@@ -9,9 +9,14 @@
 #include <math.h>
 #include <iostream>
 #include <stdlib.h>
+#include <time.h> 
+    #include <chrono>
+
+//typedef std::chrono::high_resolution_clock Clock;
+
 
 // keys: 107 = mouse1, 108 = mouse2, 109 = mouse3, 110 = mouse4, 111 = mouse5
-#define AIMKEY 111
+#define AIMKEY 107
 float AIMFOV = 12.0f; // change for FOV circle
 float AIMSMOOTH = 11.0f; // change for aim snapiness
 //int visbypass = 0;
@@ -21,6 +26,8 @@ float AIMSMOOTH = 11.0f; // change for aim snapiness
 #define SWITCHKEY 111
 
 #define clear() printf("\033[H\033[J")
+
+
 
 
 typedef unsigned char BYTE;
@@ -37,13 +44,6 @@ typedef void *PVOID;
 // these are required because we are working with PE images
 //
 
-
-float AIMSMOOTHold{1};
-float AIMFOVold{1};
-float last_visibleOld {1000};
-float nearDist{};
-int visbypassOld{};
-//Color color{}
 
 
 
