@@ -14,8 +14,8 @@ Color glowColor{15.0f, 0.2f, 0.2f};
 
 int main(void)
 {
-	std::chrono::system_clock::time_point t1;
-	std::chrono::system_clock::time_point t2;
+	//std::chrono::system_clock::time_point t1;
+	//std::chrono::system_clock::time_point t2;
 
 	int pid = GetApexProcessId();
 
@@ -519,11 +519,11 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				
 				float fl_time = vec_distance(head, muzzle) / bulletSpeed;
 				
-				//if (calcDistance(local_position, enmPos) > 400)
-				//fl_time = 1.0f;
-
+				
+				if (calcDistance(local_position, enmPos) < 400)
+				fl_time = 1.0f;
+				else
 				head.z += (700.0f * bulletGravity * 0.5f) * (fl_time * fl_time);
-
 				
 				velocity.x = velocity.x * fl_time;
 				velocity.y = velocity.y * fl_time;
@@ -598,10 +598,10 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 					sy = y;
 				}
 
-				if (abs((int)sx) > 100)
+				if (qabs((int)sx) > 100)
 					continue;
 
-				if (abs((int)sy) > 100)
+				if (qabs((int)sy) > 100)
 					continue;
 
 				DWORD current_tick = rx_read_i32(r5apex, IInputSystem + 0xcd8);
@@ -670,6 +670,11 @@ float rx_read_float(rx_handle process, QWORD address)
 	float buffer = 0;
 	rx_read_process(process, address, &buffer, sizeof(buffer));
 	return buffer;
+}
+
+BOOL rx_write_i32(rx_handle process, QWORD address, DWORD value)
+{
+	return rx_write_process(process, address, &value, sizeof(value)) == sizeof(value);
 }
 
 QWORD ResolveRelativeAddressEx(
