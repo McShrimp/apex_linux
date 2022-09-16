@@ -1,7 +1,22 @@
 #include "main.h"
+#include <float.h>
+//#include "timer.h"
+
+float AIMSMOOTHold{1};
+float AIMFOVold{1};
+float last_visibleOld {1000};
+float nearDist{};
+int visbypassOld{};
+Color glowColor{15.0f, 0.2f, 0.2f};
+
+
+
 
 int main(void)
 {
+	std::chrono::system_clock::time_point t1;
+	std::chrono::system_clock::time_point t2;
+
 	int pid = GetApexProcessId();
 
 	if (pid == 0)
@@ -68,10 +83,16 @@ int main(void)
 			dwLocalPlayer = ResolveRelativeAddressEx(r5apex, dwLocalPlayer, 3, 7);
 		}
 	}
+	/*char levelName[50];
+	QWORD dwLevelName = ResolveRelativeAddressEx(r5apex, 0x13a17b8, 3, 7);
+		// levelName = rx_read_process(r5apex, dwLevelName, levelName, 50);
 	
-	//std::string dwLevelName = ResolveRelativeAddressEx(r5apex, 0x13a17b8, 3, 7);
-
-
+	char levelName[260];
+		{
+			QWORD name_ptr = rx_read_i32(r5apex, 0x13a17b8 - base_module);
+			rx_read_process(r5apex, name_ptr, levelName, 260);
+		}*/
+	
 	QWORD IInputSystem = 0;
 	{
 		// 48 8B 05 ? ? ? ? 48 8D 4C  24 20 BA 01 00 00 00 C7
@@ -210,11 +231,11 @@ int main(void)
 		printf("[-] dwLocalPlayer not found\n");
 		goto ON_EXIT;
 	}
-	//if (dwLevelName == 0)
-	//{
-	//	printf("[-] dwLevelName not found\n");
-	//	goto ON_EXIT;
-	//}
+	/*if (dwLevelName == 0)
+	{
+		printf("[-] dwLevelName not found\n");
+		goto ON_EXIT;
+	}*/
 
 	if (IInputSystem == 0)
 	{
@@ -256,6 +277,7 @@ int main(void)
 
 	printf("[+] IClientEntityList: %lx\n", IClientEntityList - base_module);
 	printf("[+] dwLocalPlayer: %lx\n", dwLocalPlayer - base_module);
+	//printf("[+] LevelName1: %.260s\n", levelName);
 	printf("[+] IInputSystem: %lx\n", IInputSystem - base_module);
 	printf("[+] sensitivity: %lx\n", sensitivity - base_module);
 	printf("[+] dwBulletSpeed: %x\n", dwBulletSpeed);
@@ -285,6 +307,7 @@ int main(void)
                                                  
 
 ")");  
+
 	while (1)
 	{
 		if (!rx_process_exists(r5apex))
@@ -436,16 +459,20 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 #if GLOW_ESP == 1
 			rx_write_i32(r5apex, entity + 0x262, 16256);
 			rx_write_i32(r5apex, entity + 0x2d0, 1193322764);
+			GlowMode glow[] { 75, 7, 70, 90 };
 			
-			rx_write_i32(r5apex, entity + 0x3c8, 7); 
-			rx_write_i32(r5apex, entity + 0x3d0, 2);
-			//rx_write_i32(r5apex, entity + 0x320, 5); // glow thru walls test
+			//for (int i = 0; i < 4; ++i)
+			//rx_write_i32(r5apex, entity + 0x2c4+(0x4*(i+1)), glow[i]);  //Setting the of the Glow at all necessary spots
 
-			//GlowMode glow{101,101,46,90};
-			//rx_write_process(r5apex, entity + 0x2c4, &glow, sizeof(glow)) == sizeof(glow);
+			rx_write_i32(r5apex, entity + 0x3c8, 1); 
+			rx_write_i32(r5apex, entity + 0x3d0, 2);
+			//rx_write_i32(r5apex, entity + 0x3d8, 1); // glow thru walls test
+
+			rx_write_process(r5apex, entity + 0x2c4, &glow, sizeof(GlowMode)) == sizeof(GlowMode);
+			
 			//write<GlowMode>(Entity + 0x2C4, { 101,101,46,90 }); 
-			//rx_write_i32(r5apex, entity + 0x1D0, 2);
-			//rx_write_i32(r5apex, entity + 0x1D4, 200);
+			rx_write_i32(r5apex, entity + 0x1D0, 15);
+			//rx_write_i32(r5apex, entity + 0x1D4, 14);
 			//rx_write_i32(r5apex, entity + 0x1D8, 2);
 #endif
 		}
@@ -464,9 +491,24 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 			vec3 breath_angles;
 			rx_read_process(r5apex, localplayer + m_iViewAngles - 0x10, &breath_angles, sizeof(vec3));
 
-			for (int i = 0; i < 4; i++)
-			{
-				vec3 head = GetBonePosition(r5apex, target_entity, bone_list[i]);
+
+				vec3 head;
+				head = GetBonePosition(r5apex, target_entity, 2);
+				
+				//if (rand() % 1 + 3)
+				//head = GetBonePosition(r5apex, target_entity, bone_list[1]);
+
+				//if (rand() % 8 + 1)
+				//head = GetBonePosition(r5apex, target_entity, rand() % 8 + 3);
+
+				//if (rand() % 5 + 1)
+				//continue;
+
+				//if (rand() % 5 + 1)
+				//head = GetBonePosition(r5apex, target_entity, bone_list[3]);
+
+	
+				
 
 				vec3 velocity;
 				rx_read_process(r5apex, target_entity + m_vecAbsOrigin - 0xC, &velocity, sizeof(vec3));
@@ -474,9 +516,12 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				vec3 enmPos;
 				rx_read_process(r5apex, target_entity + 0x158, &enmPos, sizeof(vec3));
 
-				//if (calcDistance(local_position, enmPos) > 400){
+				
 				float fl_time = vec_distance(head, muzzle) / bulletSpeed;
 				
+				//if (calcDistance(local_position, enmPos) > 400)
+				//fl_time = 1.0f;
+
 				head.z += (700.0f * bulletGravity * 0.5f) * (fl_time * fl_time);
 
 				
@@ -489,7 +534,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				head.x += velocity.x;
 				head.y += velocity.y;
 				head.z += velocity.z;
-				//}
+				
 				
 				//printf("distance %f", calcDistance(local_position, enmPos));
 				vec3 angle = CalcAngle(muzzle, head);
@@ -499,7 +544,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 					fov = temp_fov;
 					target_angle = angle;
 				}
-			}
+			
 
 			DWORD weapon_id = rx_read_i32(r5apex, localplayer + m_iWeapon) & 0xFFFF;
 			QWORD weapon = GetClientEntity(r5apex, IClientEntityList, weapon_id - 1);
@@ -561,9 +606,11 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 
 				DWORD current_tick = rx_read_i32(r5apex, IInputSystem + 0xcd8);
 
-				
+				//printf("Time: %i", (int)(current_tick-previous_tick));
 				if (current_tick - previous_tick > aim_ticks)
 				{
+					
+					
 					previous_tick = current_tick;
 					typedef struct
 					{
@@ -573,7 +620,14 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 
 					data.x = (int)sx;
 					data.y = (int)sy;
+					
+					
+					
+
+					
 					rx_write_process(r5apex, IInputSystem + 0x1DB0, &data, sizeof(data));
+					//}
+					 
 				}
 			}
 		}
