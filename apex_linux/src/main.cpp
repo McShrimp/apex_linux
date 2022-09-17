@@ -516,13 +516,13 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				vec3 enmPos;
 				rx_read_process(r5apex, target_entity + 0x158, &enmPos, sizeof(vec3));
 
-				
+				bool close = (calcDistance(local_position, enmPos) < 400);
+				float close_fov = AIMFOV;
+				if (close)
+				float close_fov = AIMFOV + 12; 	
+			
 				float fl_time = vec_distance(head, muzzle) / bulletSpeed;
 				
-				
-				if (calcDistance(local_position, enmPos) < 400)
-				fl_time = 1.0f;
-				else
 				head.z += (700.0f * bulletGravity * 0.5f) * (fl_time * fl_time);
 				
 				velocity.x = velocity.x * fl_time;
@@ -554,8 +554,8 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 			{
 				fl_sensitivity = (zoom_fov / 90.0f) * fl_sensitivity;
 			}
-
-			if (fov <= AIMFOV)
+			
+			if ((fov <= AIMFOV) || (fov <= close_fov))
 			{
 
 				vec3 angles;
