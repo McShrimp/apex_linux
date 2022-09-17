@@ -1,16 +1,15 @@
 #include "main.h"
 #include <float.h>
-//#include "timer.h"
+#include <array>
 
-float AIMSMOOTHold{1};
-float AIMFOVold{1};
-float last_visibleOld {1000};
+
+float last_vis_time_flt[70]{};
 float nearDist{};
-int visbypassOld{};
 Color glowColor{15.0f, 0.2f, 0.2f};
+bool is_vis[70];
 
 
-
+void skinchanger(QWORD weaponAddy, QWORD playerAddy, rx_handle apexProc);
 
 int main(void)
 {
@@ -314,6 +313,7 @@ int main(void)
 		{
 			break;
 		}
+		
 
 		/*if(IsButtonDown(r5apex, IInputSystem, 87)&& AIMFOV < 360)
 		AIMFOV += 1;
@@ -380,6 +380,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 		vec3 local_position;
 		rx_read_process(r5apex, localplayer + m_vecAbsOrigin, &local_position, sizeof(vec3));
 
+		
 		for (int i = 0; i < 70; i++)
 		{
 			QWORD entity = GetClientEntity(r5apex, IClientEntityList, i);
@@ -400,7 +401,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 			{
 				continue;
 			}
-
+//
 			if (rx_read_i32(r5apex, entity + m_lifeState) != 0)
 			{
 				lastvis_aim[i] = 0;
@@ -412,6 +413,10 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				lastvis_aim[i] = 0;
 				continue;
 			}
+
+			if(IsButtonDown(r5apex, IInputSystem, 87))
+			skinchanger(weapon, localplayer, r5apex);
+
 			vec3 head = GetBonePosition(r5apex, entity, 2);
 
 			vec3 velocity;
@@ -439,17 +444,20 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 			rx_read_process(r5apex, localplayer + m_iViewAngles - 0x10, &breath_angles, sizeof(vec3));
 
 			float last_visible = rx_read_float(r5apex, entity + dwVisibleTime);
-
-
+			
+			
 			if (last_visible != 0.00f)
 			{
 				
+			
+				
 				float fov = get_fov(breath_angles, target_angle);
+
 
 				if (fov < target_fov && last_visible > lastvis_aim[i])
 				{
+					
 					//printf("Distance, %f", nearDist/100);
-
 					target_fov = fov;
 					target_entity = entity;
 					lastvis_aim[i] = last_visible;
@@ -459,8 +467,19 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 #if GLOW_ESP == 1
 			rx_write_i32(r5apex, entity + 0x262, 16256);
 			rx_write_i32(r5apex, entity + 0x2d0, 1193322764);
-			GlowMode glow[] { 75, 7, 70, 90 };
+			std::array<int8_t, 4> glow;
+
 			
+ 
+  // If the player was never visible the value is -1
+  			
+ 
+			
+			glow = {75, 7, 70, 90 };
+		
+			
+		
+
 			//for (int i = 0; i < 4; ++i)
 			//rx_write_i32(r5apex, entity + 0x2c4+(0x4*(i+1)), glow[i]);  //Setting the of the Glow at all necessary spots
 
@@ -470,7 +489,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 
 			rx_write_process(r5apex, entity + 0x2c4, &glow, sizeof(GlowMode)) == sizeof(GlowMode);
 			
-			//write<GlowMode>(Entity + 0x2C4, { 101,101,46,90 }); 
+			
 			rx_write_i32(r5apex, entity + 0x1D0, 15);
 			//rx_write_i32(r5apex, entity + 0x1D4, 14);
 			//rx_write_i32(r5apex, entity + 0x1D8, 2);
@@ -491,15 +510,21 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 			vec3 breath_angles;
 			rx_read_process(r5apex, localplayer + m_iViewAngles - 0x10, &breath_angles, sizeof(vec3));
 
-
+				srand(time(NULL));
 				vec3 head;
-				head = GetBonePosition(r5apex, target_entity, 2);
+				int v2 = rand() % 4 + 1; 
+				int i{};
+				if (v2 == 4)
+				i = 7;
+				else 
+				i = 3;
+
+				head = GetBonePosition(r5apex, target_entity, i);
 				
 				//if (rand() % 1 + 3)
 				//head = GetBonePosition(r5apex, target_entity, bone_list[1]);
 
-				//if (rand() % 8 + 1)
-				//head = GetBonePosition(r5apex, target_entity, rand() % 8 + 3);
+				
 
 				//if (rand() % 5 + 1)
 				//continue;
@@ -517,9 +542,9 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				rx_read_process(r5apex, target_entity + 0x158, &enmPos, sizeof(vec3));
 
 				bool close = (calcDistance(local_position, enmPos) < 400);
-				float close_fov = AIMFOV;
-				if (close)
-				float close_fov = AIMFOV + 12; 	
+				//float close_fov = AIMFOV;
+				//if (close)
+				//float close_fov = AIMFOV + 12; 	
 			
 				float fl_time = vec_distance(head, muzzle) / bulletSpeed;
 				
@@ -555,7 +580,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				fl_sensitivity = (zoom_fov / 90.0f) * fl_sensitivity;
 			}
 			
-			if ((fov <= AIMFOV) || (fov <= close_fov))
+			if ((fov <= AIMFOV)/* || (fov <= close_fov)*/)
 			{
 
 				vec3 angles;
@@ -607,6 +632,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				DWORD current_tick = rx_read_i32(r5apex, IInputSystem + 0xcd8);
 
 				//printf("Time: %i", (int)(current_tick-previous_tick));
+				
 				if (current_tick - previous_tick > aim_ticks)
 				{
 					
@@ -806,4 +832,12 @@ QWORD rx_scan_pattern(QWORD dumped_module, PCSTR pattern, PCSTR mask, QWORD leng
 		}
 	}
 	return ret;
+}
+
+void skinchanger(QWORD weaponAddy, QWORD playerAddy, rx_handle apexProc){
+	srand(time(NULL));
+			printf("Weapon: %i", rx_read_i32(apexProc, weaponAddy + 0x0e48));
+			printf("Skin: %i", rx_read_i32(apexProc, playerAddy + 0x0e48));
+			rx_write_i32(apexProc, playerAddy + 0x0e48, rand() % 1 + 45); 
+			rx_write_i32(apexProc, weaponAddy + 0x0e48, rand() % 1 + 45); 
 }
