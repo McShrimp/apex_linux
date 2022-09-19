@@ -15,6 +15,8 @@ bool low[72]{};
 bool locked{0};
 float bestFov{360};
 Timer<std::chrono::milliseconds> start;
+Timer<std::chrono::milliseconds> aim;
+
 
 
 void skinchanger(QWORD weaponAddy, QWORD playerAddy, rx_handle apexProc);
@@ -682,7 +684,7 @@ rx_write_process(r5apex, entity + 0x1d0, &glowColorBlue, sizeof(Color)) == sizeo
 
 				//printf("Time: %i", (int)(current_tick-previous_tick));
 				
-				if (current_tick - previous_tick > aim_ticks)
+				if ((current_tick - previous_tick > aim_ticks) && aim.diff() > 10)
 				{
 					
 					
@@ -702,7 +704,7 @@ rx_write_process(r5apex, entity + 0x1d0, &glowColorBlue, sizeof(Color)) == sizeo
 					
 					rx_write_process(r5apex, IInputSystem + 0x1DB0, &data, sizeof(data));
 					//}
-					 
+					aim.reset();
 				}
 			}
 		}
