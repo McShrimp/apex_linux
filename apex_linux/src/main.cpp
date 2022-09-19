@@ -1,15 +1,26 @@
 #include "main.h"
 #include <float.h>
 #include <array>
+#include "timer.h"
+#include <thread>
 
 
-float last_vis_time_flt[70]{};
+float last_vis_time_flt[72]{};
 float nearDist{};
-Color glowColor{15.0f, 0.2f, 0.2f};
-bool is_vis[70];
+//Color glowColor{15.0f, 0.2f, 0.2f};
+bool is_vis[72];
+int ff{};
+int z[72]{};
+bool low[72]{};
+bool locked{0};
+float bestFov{360};
+Timer<std::chrono::milliseconds> start;
 
 
 void skinchanger(QWORD weaponAddy, QWORD playerAddy, rx_handle apexProc);
+
+void lockTarget(rx_handle apexProc, QWORD input);
+
 
 int main(void)
 {
@@ -414,8 +425,12 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				continue;
 			}
 
-			if(IsButtonDown(r5apex, IInputSystem, 87))
+			if(IsButtonDown(r5apex, IInputSystem, 87)){
+				srand(time(NULL));
+			ff = rand() % 27 + 1;
+
 			skinchanger(weapon, localplayer, r5apex);
+			}
 
 			vec3 head = GetBonePosition(r5apex, entity, 2);
 
@@ -444,8 +459,24 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 			rx_read_process(r5apex, localplayer + m_iViewAngles - 0x10, &breath_angles, sizeof(vec3));
 
 			float last_visible = rx_read_float(r5apex, entity + dwVisibleTime);
-			
-			
+			 
+  		// If the player was never visible the value is -1
+  			is_vis[i] = last_visible > last_vis_time_flt[i] || last_visible < 0.f && last_vis_time_flt[i] > 0.f;
+ 
+  			last_vis_time_flt[i] = last_visible;
+
+				std::array<float, 3> glowColorRed{61.f, 2.f, 2.f};
+				std::array<float, 3> glowColorGreen{2.f, 61.f, 2.f};
+				std::array<float, 3> glowColorBlue{2.f, 2.f, 61.f};
+
+		
+				if (rx_read_i32(r5apex, entity + m_iHealth) < 70)
+				low[i] = true;
+				else
+				low[i] = false;	
+				
+
+
 			if (last_visible != 0.00f)
 			{
 				
@@ -456,49 +487,67 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 
 				if (fov < target_fov && last_visible > lastvis_aim[i])
 				{
-					
+					if (low[i])
+				rx_write_process(r5apex, entity + 0x1d0, &glowColorBlue, sizeof(Color)) == sizeof(Color);
+				else
+				rx_write_process(r5apex, entity + 0x1d0, &glowColorGreen, sizeof(Color)) == sizeof(Color);
+
 					//printf("Distance, %f", nearDist/100);
+					if (locked == false){
 					target_fov = fov;
 					target_entity = entity;
 					lastvis_aim[i] = last_visible;
+					}
+					
 				}
+				else
+				if (start.diff() >= 55){	
+				start.reset();
+				
+			if (!is_vis[i])
+			rx_write_process(r5apex, entity + 0x1d0, &glowColorRed, sizeof(Color)) == sizeof(Color);
+			}			
+
+				
 			}
 
-#if GLOW_ESP == 1
-			rx_write_i32(r5apex, entity + 0x262, 16256);
-			rx_write_i32(r5apex, entity + 0x2d0, 1193322764);
-			std::array<int8_t, 4> glow;
 
+			//rx_write_i32(r5apex, entity + 0x262, 16256);
+			//rx_write_i32(r5apex, entity + 0x2d0, 1193322764);
+			std::array<int8_t, 4> glow;
 			
- 
+ glow = {101, 102, 50, 100 };
   // If the player was never visible the value is -1
-  			
- 
-			
-			glow = {75, 7, 70, 90 };
+				
+		
 		
 			
 		
 
 			//for (int i = 0; i < 4; ++i)
 			//rx_write_i32(r5apex, entity + 0x2c4+(0x4*(i+1)), glow[i]);  //Setting the of the Glow at all necessary spots
-
+			
 			rx_write_i32(r5apex, entity + 0x3c8, 1); 
 			rx_write_i32(r5apex, entity + 0x3d0, 2);
 			//rx_write_i32(r5apex, entity + 0x3d8, 1); // glow thru walls test
+			
+			
+					if(IsButtonDown(r5apex, IInputSystem, 80))
+rx_write_process(r5apex, entity + 0x1d0, &glowColorBlue, sizeof(Color)) == sizeof(Color);			
 
+			
 			rx_write_process(r5apex, entity + 0x2c4, &glow, sizeof(GlowMode)) == sizeof(GlowMode);
 			
-			
-			rx_write_i32(r5apex, entity + 0x1D0, 15);
-			//rx_write_i32(r5apex, entity + 0x1D4, 14);
-			//rx_write_i32(r5apex, entity + 0x1D8, 2);
-#endif
+			//rx_write_i32(r5apex, entity + 0x1D0, 2.f);
+			//rx_write_i32(r5apex, entity + 0x1D4, 61.f);
+			//rx_write_i32(r5apex, entity + 0x1D8, 2.f);
+	
 		}
 
+	
 		if (target_entity && IsButtonDown(r5apex, IInputSystem, AIMKEY))
 		{
-
+			locked = true;	
 			if (rx_read_i32(r5apex, target_entity + m_iHealth) == 0)
 				continue;
 			
@@ -623,10 +672,10 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 					sy = y;
 				}
 
-				if (qabs((int)sx) > 100)
+				if (abs((int)sx) > 100)
 					continue;
 
-				if (qabs((int)sy) > 100)
+				if (abs((int)sy) > 100)
 					continue;
 
 				DWORD current_tick = rx_read_i32(r5apex, IInputSystem + 0xcd8);
@@ -657,6 +706,9 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				}
 			}
 		}
+		else
+		locked = false;
+	
 	}
 
 ON_EXIT:
@@ -836,8 +888,11 @@ QWORD rx_scan_pattern(QWORD dumped_module, PCSTR pattern, PCSTR mask, QWORD leng
 
 void skinchanger(QWORD weaponAddy, QWORD playerAddy, rx_handle apexProc){
 	srand(time(NULL));
+	
 			printf("Weapon: %i", rx_read_i32(apexProc, weaponAddy + 0x0e48));
 			printf("Skin: %i", rx_read_i32(apexProc, playerAddy + 0x0e48));
-			rx_write_i32(apexProc, playerAddy + 0x0e48, rand() % 1 + 45); 
-			rx_write_i32(apexProc, weaponAddy + 0x0e48, rand() % 1 + 45); 
+			rx_write_i32(apexProc, playerAddy + 0x0e48, ff); 
+			rx_write_i32(apexProc, weaponAddy + 0x0e48, ff); 
 }
+
+
