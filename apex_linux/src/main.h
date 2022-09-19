@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
-//#include <math.h>
+#include <math.h>
 #include <iostream>
 #include <stdlib.h>
 #include <time.h> 
@@ -16,9 +16,9 @@
 
 
 // keys: 107 = mouse1, 108 = mouse2, 109 = mouse3, 110 = mouse4, 111 = mouse5
-#define AIMKEY 107
+#define AIMKEY 111
 float AIMFOV = 12.0f; // change for FOV circle
-float AIMSMOOTH = 11.0f; // change for aim snapiness
+float AIMSMOOTH = 11.1f; // change for aim snapiness
 //int visbypass = 0;
 #define GLOW_ESP 1
 #define UPKEY 111
