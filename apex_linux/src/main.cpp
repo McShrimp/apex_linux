@@ -10,12 +10,15 @@ float nearDist{};
 //Color glowColor{15.0f, 0.2f, 0.2f};
 bool is_vis[72];
 int ff{};
-int z[72]{};
+int z{};
 bool low[72]{};
 bool locked{0};
 float bestFov{360};
 Timer<std::chrono::milliseconds> start;
 Timer<std::chrono::milliseconds> aim;
+Timer<std::chrono::milliseconds> startaim;
+int bestEnt{};
+
 
 
 
@@ -396,6 +399,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 		
 		for (int i = 0; i < 70; i++)
 		{
+
 			QWORD entity = GetClientEntity(r5apex, IClientEntityList, i);
 
 			if (entity == 0)
@@ -470,9 +474,10 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				std::array<float, 3> glowColorRed{61.f, 2.f, 2.f};
 				std::array<float, 3> glowColorGreen{2.f, 61.f, 2.f};
 				std::array<float, 3> glowColorBlue{2.f, 2.f, 61.f};
+				std::array<float, 3> glowColorPurple{61.f, 15.f, 53.f};
 
 		
-				if (rx_read_i32(r5apex, entity + m_iHealth) < 70)
+				if (rx_read_i32(r5apex, entity + m_iHealth)+rx_read_i32(r5apex, entity + 0x0170) < 70) // health + shield
 				low[i] = true;
 				else
 				low[i] = false;	
@@ -487,33 +492,40 @@ if(IsButtonDown(r5apex, IInputSystem, i))
 				float fov = get_fov(breath_angles, target_angle);
 
 
-				if (fov < target_fov && last_visible > lastvis_aim[i])
+				if (last_visible > lastvis_aim[i])
 				{
 					if (low[i])
-				rx_write_process(r5apex, entity + 0x1d0, &glowColorBlue, sizeof(Color)) == sizeof(Color);
+				rx_write_process(r5apex, entity + 0x1d0, &glowColorPurple, sizeof(Color)) == sizeof(Color);
 				else
 				rx_write_process(r5apex, entity + 0x1d0, &glowColorGreen, sizeof(Color)) == sizeof(Color);
 
 					//printf("Distance, %f", nearDist/100);
-					if (locked == false){
+					if ((!locked || aim.diff() > 25) && fov < target_fov){
+					z = i;
 					target_fov = fov;
+					bestFov = fov;
 					target_entity = entity;
 					lastvis_aim[i] = last_visible;
+					//printf("fov: %f", fov);
+					aim.reset();
 					}
 					
 				}
 				else
-				if (start.diff() >= 55){	
+				if (start.diff() >= 1){	
 				start.reset();
 				
 			if (!is_vis[i])
+			if (low[i])
+			rx_write_process(r5apex, entity + 0x1d0, &glowColorBlue, sizeof(Color)) == sizeof(Color);
+			else
 			rx_write_process(r5apex, entity + 0x1d0, &glowColorRed, sizeof(Color)) == sizeof(Color);
 			}			
 
 				
 			}
 
-
+			//printf("Time: %i", start.diff());
 			//rx_write_i32(r5apex, entity + 0x262, 16256);
 			//rx_write_i32(r5apex, entity + 0x2d0, 1193322764);
 			std::array<int8_t, 4> glow;
@@ -521,8 +533,7 @@ if(IsButtonDown(r5apex, IInputSystem, i))
  glow = {101, 102, 50, 100 };
   // If the player was never visible the value is -1
 				
-		
-		
+	
 			
 		
 
@@ -549,17 +560,23 @@ rx_write_process(r5apex, entity + 0x1d0, &glowColorBlue, sizeof(Color)) == sizeo
 	
 		if (target_entity && IsButtonDown(r5apex, IInputSystem, AIMKEY))
 		{
-			locked = true;	
-			if (rx_read_i32(r5apex, target_entity + m_iHealth) == 0)
-				continue;
+			aim.reset();
+			bestEnt = z;
 			
-
+			if (rx_read_i32(r5apex, target_entity + m_iHealth) == 0){
+				locked = false;
+				continue;
+			}
+			
+			
 			vec3 target_angle = {0, 0, 0};
 			float fov = 360.0f;
 			int bone_list[] = {2, 3, 5, 8};
 
 			vec3 breath_angles;
 			rx_read_process(r5apex, localplayer + m_iViewAngles - 0x10, &breath_angles, sizeof(vec3));
+
+			
 
 				srand(time(NULL));
 				vec3 head;
@@ -615,6 +632,15 @@ rx_write_process(r5apex, entity + 0x1d0, &glowColorBlue, sizeof(Color)) == sizeo
 				//printf("distance %f", calcDistance(local_position, enmPos));
 				vec3 angle = CalcAngle(muzzle, head);
 				float temp_fov = get_fov(breath_angles, angle);
+
+				if (temp_fov < 2.5)
+				locked = true;
+				else
+				locked = false;
+
+				if (!is_vis[z])
+				locked = false;
+
 				if (temp_fov < fov)
 				{
 					fov = temp_fov;
@@ -674,6 +700,8 @@ rx_write_process(r5apex, entity + 0x1d0, &glowColorBlue, sizeof(Color)) == sizeo
 					sy = y;
 				}
 
+				
+
 				if (abs((int)sx) > 100)
 					continue;
 
@@ -684,7 +712,7 @@ rx_write_process(r5apex, entity + 0x1d0, &glowColorBlue, sizeof(Color)) == sizeo
 
 				//printf("Time: %i", (int)(current_tick-previous_tick));
 				
-				if ((current_tick - previous_tick > aim_ticks) && aim.diff() > 10)
+				if (current_tick - previous_tick > aim_ticks)
 				{
 					
 					
@@ -704,12 +732,11 @@ rx_write_process(r5apex, entity + 0x1d0, &glowColorBlue, sizeof(Color)) == sizeo
 					
 					rx_write_process(r5apex, IInputSystem + 0x1DB0, &data, sizeof(data));
 					//}
-					aim.reset();
+			
 				}
 			}
 		}
-		else
-		locked = false;
+	
 	
 	}
 
